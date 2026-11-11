@@ -647,10 +647,21 @@ with tab_dashboard:
         - ⚡ **Khung giờ làm việc:** 00:00 - 02:00 (2 tiếng) | 🛡️ **Độ phủ cam kết SLA:** 100%
         """)
 
-    stn_picking = max(1, round(ai_staff_required * 0.35))
-    stn_sorting = max(1, round(ai_staff_required * 0.20))
-    stn_packing = max(1, round(ai_staff_required * 0.35))
-    stn_dispatch = max(1, ai_staff_required - stn_picking - stn_sorting - stn_packing)
+    # Phân bổ nhân sự 4 trạm đảm bảo tổng luôn khớp 100% bằng ai_staff_required
+    p_pick = max(1, round(ai_staff_required * 0.35))
+    p_sort = max(1, round(ai_staff_required * 0.20))
+    p_pack = max(1, round(ai_staff_required * 0.35))
+    p_disp = ai_staff_required - (p_pick + p_sort + p_pack)
+    if p_disp < 1:
+        p_disp = 1
+        if p_pack > 1:
+            p_pack -= 1
+        elif p_pick > 1:
+            p_pick -= 1
+    stn_picking = p_pick
+    stn_sorting = p_sort
+    stn_packing = p_pack
+    stn_dispatch = p_disp
 
     schedule_data = [
         {"STT": 1, "Vị Trí Công Việc": "1. Lấy hàng (Picking - Batching)", "Tỷ Lệ": "35%", "Số Lượng (Người)": stn_picking, "Định Mức (Đơn/H)": uph, "Tổng Năng Lực (Đơn)": stn_picking * capacity_per_person, "Trang Thiết Bị": "Máy quét PDA, Xe Trolley 6 ngăn", "Ghi Chú Vận Hành": "Nhặt hàng theo zone kệ A, B, C"},
@@ -1189,17 +1200,17 @@ with tab_model_connect:
         with col_s3:
             pt_wage_h = st.number_input("💵 Đơn giá lương Part-time (VNĐ/h):", value=int(base_hourly), step=5000)
 
-        # Tính toán so sánh
-        peak_needed = max_hour_staff
+        # Tính toán so sánh thực tế
+        peak_needed = max(core_ft, max_hour_staff)
         pt_needed = max(0, peak_needed - core_ft)
         
-        # 100% Full-time
+        # 100% Full-time (nếu thuê toàn bộ theo ca 8h)
         cost_100_ft = peak_needed * 8 * base_hourly
-        # Hybrid
+        # Hybrid (kết hợp Full-time nòng cốt và Part-time giờ cao điểm)
         cost_core_ft = core_ft * 8 * base_hourly
         cost_flex_pt = pt_needed * pt_hours * pt_wage_h
         cost_hybrid = cost_core_ft + cost_flex_pt
-        cost_saved_shift = cost_100_ft - cost_hybrid
+        cost_saved_shift = max(0, cost_100_ft - cost_hybrid)
         pct_saved_shift = (cost_saved_shift / cost_100_ft * 100) if cost_100_ft > 0 else 0
 
         # Thẻ so sánh kết quả tài chính của việc xếp ca
@@ -1523,6 +1534,7 @@ with tab_sensitivity:
         height=450,
         margin=dict(l=40, r=40, t=60, b=40)
     )
+    fig_delta.update_traces(cliponaxis=False)
     st.plotly_chart(fig_delta, use_container_width=True)
 
     # 2. Biểu đồ Cột Nhóm Đối Đầu (Grouped Comparison)
@@ -1552,6 +1564,7 @@ with tab_sensitivity:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         margin=dict(l=40, r=40, t=60, b=40)
     )
+    fig_comp.update_traces(cliponaxis=False)
     st.plotly_chart(fig_comp, use_container_width=True)
 
     # 3. MA TRẬN 3 VÙNG QUYẾT ĐỊNH QUẢN TRỊ
@@ -1669,25 +1682,29 @@ with tab_roi:
             payback_events = ai_invest_input / net_savings
             payback_hours = payback_events * shift_hours
             annual_roi = ((total_annual_savings - ai_invest_input) / ai_invest_input) * 100
+            payback_note = f"⚡ <b>Thời gian thu hồi vốn:</b> Chỉ sau <b>{payback_events:.2f} đêm Flash Sale</b> (~{payback_hours:.1f} giờ vận hành) là doanh nghiệp đã hoàn đủ 100% chi phí đầu tư công nghệ AI!"
+            roi_display = f"+{annual_roi:,.0f}%"
         else:
             payback_events = 0
             payback_hours = 0
             annual_roi = 0
+            payback_note = f"💡 <b>Ghi chú:</b> Ở quy mô đơn {fmt_num(total_orders)} đơn, nhân sự kho truyền thống ({fixed_staff} người) chưa phát sinh quá tải và tiền phạt SLA."
+            roi_display = "Hòa vốn"
 
         render_html(f"""
         <div style="background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:16px; padding:22px;">
             <div style="display:flex; justify-content:space-between;">
                 <div>
                     <div style="font-size:0.85rem; color:#065f46; font-weight:700;">TIẾT KIỆM HÀNG NĂM ({flash_events_year} ĐỢT SALE)</div>
-                    <div style="font-size:1.8rem; font-weight:800; color:#059669;">{fmt_vnd(total_annual_savings)}</div>
+                    <div style="font-size:1.8rem; font-weight:800; color:#059669;">{fmt_vnd(max(0, total_annual_savings))}</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:0.85rem; color:#065f46; font-weight:700;">TỶ SUẤT HOÀN VỐN (ROI)</div>
-                    <div style="font-size:1.8rem; font-weight:800; color:#059669;">+{annual_roi:,.0f}%</div>
+                    <div style="font-size:1.8rem; font-weight:800; color:#059669;">{roi_display}</div>
                 </div>
             </div>
             <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #6ee7b7; font-size:0.92rem; color:#064e3b;">
-                ⚡ <b>Thời gian thu hồi vốn:</b> Chỉ sau <b>{payback_events:.2f} đêm Flash Sale</b> (~{payback_hours:.1f} giờ vận hành) là doanh nghiệp đã hoàn đủ 100% chi phí đầu tư công nghệ AI!
+                {payback_note}
             </div>
         </div>
         """)
