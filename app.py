@@ -667,72 +667,287 @@ with tab_dashboard:
 # TAB 2: SƠ ĐỒ PHÂN BỔ 4 TRẠM KHO (CHUYÊN MÔN LOGISTICS CAO CẤP)
 # ─────────────────────────────────────────────────────────────────────
 with tab_stations:
-    st.markdown("### 🏢 Phân Bổ Nhân Sự Chi Tiết Vào 4 Trạm Nghiệp Vụ Kho")
+    st.markdown("### 🏢 Phân Bổ Chi Tiết 4 Trạm Vận Hành: Chức Năng, Nhiệm Vụ, Nhân Sự & Chi Phí")
     st.markdown("""
-    Trong kho logistics thực tế, **nhân sự không làm việc chung một khâu** mà được điều phối 
-    theo **quy trình dây chuyền 4 trạm** nhằm triệt tiêu điểm nghẽn (Bottleneck):
+    Trong trung tâm hoàn tất đơn hàng (Fulfillment Center), **nhân sự được phân bổ theo 4 trạm nghiệp vụ chuyên biệt**.
+    Dưới đây là hạch toán cụ thể về **số lượng con người, nhiệm vụ chi tiết và ngân sách chi tiêu của từng trạm** 
+    để cấp quản lý nắm rõ từng đồng chi phí ca đêm:
     """)
 
-    col_st_chart, col_st_info = st.columns([5, 6])
+    # Tính toán chi phí cụ thể từng trạm
+    stn_picking_wage = stn_picking * wage_per_person
+    stn_sorting_wage = stn_sorting * wage_per_person
+    stn_packing_wage = stn_packing * wage_per_person
+    stn_dispatch_wage = stn_dispatch * wage_per_person
 
-    with col_st_chart:
-        station_labels = [
-            f"🛒 Picking ({stn_picking} người)",
-            f"🗂️ Sorting ({stn_sorting} người)",
-            f"📦 Packing ({stn_packing} người)",
-            f"🚚 Dispatch ({stn_dispatch} người)"
-        ]
-        station_values = [stn_picking, stn_sorting, stn_packing, stn_dispatch]
-        station_colors = ["#3b82f6", "#f59e0b", "#ec4899", "#10b981"]
+    stn_picking_supplies = stn_picking * 3000   # Pin PDA, găng tay chống trượt
+    stn_sorting_supplies = stn_sorting * 2500   # Khay nhựa Tote, thẻ phân loại
+    stn_packing_supplies = stn_packing * 15000  # Giấy in tem A6, màng xốp khí, băng dính chữ H
+    stn_dispatch_supplies = stn_dispatch * 4000 # Màng PE quấn Pallet, seal niêm phong
 
-        fig_donut = go.Figure(data=[go.Pie(
-            labels=station_labels,
-            values=station_values,
-            hole=0.55,
-            marker=dict(colors=station_colors),
+    stn_picking_total = stn_picking_wage + stn_picking_supplies
+    stn_sorting_total = stn_sorting_wage + stn_sorting_supplies
+    stn_packing_total = stn_packing_wage + stn_packing_supplies
+    stn_dispatch_total = stn_dispatch_wage + stn_dispatch_supplies
+    grand_stations_total = stn_picking_total + stn_sorting_total + stn_packing_total + stn_dispatch_total
+
+    # 4 Thẻ KPI Tổng Quan Ngân Sách Từng Trạm
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        render_html(f"""
+        <div class="metric-card" style="border-left: 5px solid #3b82f6;">
+            <div class="card-label">🛒 1. TRẠM LẤY HÀNG (PICKING)</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#2563eb; margin:4px 0;">{stn_picking} người</div>
+            <div style="font-weight:700; color:#0f172a; font-size:1.05rem;">{fmt_vnd(stn_picking_total)}</div>
+            <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">(Lương: {fmt_vnd(stn_picking_wage)} | Vật tư: {fmt_vnd(stn_picking_supplies)})</div>
+        </div>
+        """)
+    with k2:
+        render_html(f"""
+        <div class="metric-card" style="border-left: 5px solid #f59e0b;">
+            <div class="card-label">🗂️ 2. TRẠM PHÂN LOẠI (SORTING)</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#d97706; margin:4px 0;">{stn_sorting} người</div>
+            <div style="font-weight:700; color:#0f172a; font-size:1.05rem;">{fmt_vnd(stn_sorting_total)}</div>
+            <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">(Lương: {fmt_vnd(stn_sorting_wage)} | Vật tư: {fmt_vnd(stn_sorting_supplies)})</div>
+        </div>
+        """)
+    with k3:
+        render_html(f"""
+        <div class="metric-card" style="border-left: 5px solid #e11d48; background:#fff1f2;">
+            <div class="card-label" style="color:#be123c;">📦 3. ĐÓNG GÓI (PACKING - NGHẼN)</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#e11d48; margin:4px 0;">{stn_packing} người</div>
+            <div style="font-weight:700; color:#be123c; font-size:1.05rem;">{fmt_vnd(stn_packing_total)}</div>
+            <div style="font-size:0.8rem; color:#9f1239; margin-top:2px;">(Lương: {fmt_vnd(stn_packing_wage)} | Vật tư: {fmt_vnd(stn_packing_supplies)})</div>
+        </div>
+        """)
+    with k4:
+        render_html(f"""
+        <div class="metric-card" style="border-left: 5px solid #10b981;">
+            <div class="card-label">🚚 4. TRẠM XUẤT KHO (DISPATCH)</div>
+            <div style="font-size:1.6rem; font-weight:800; color:#059669; margin:4px 0;">{stn_dispatch} người</div>
+            <div style="font-weight:700; color:#0f172a; font-size:1.05rem;">{fmt_vnd(stn_dispatch_total)}</div>
+            <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">(Lương: {fmt_vnd(stn_dispatch_wage)} | Vật tư: {fmt_vnd(stn_dispatch_supplies)})</div>
+        </div>
+        """)
+
+    st.markdown("<br>", unsafe_allow_html=False)
+
+    # 2 Biểu Đồ So Sánh: Cơ Cấu Nhân Sự vs Cơ Cấu Ngân Sách
+    ch_col1, ch_col2 = st.columns(2)
+    with ch_col1:
+        fig_donut_staff = go.Figure(data=[go.Pie(
+            labels=[f"🛒 Picking ({stn_picking} người)", f"🗂️ Sorting ({stn_sorting} người)", f"📦 Packing ({stn_packing} người)", f"🚚 Dispatch ({stn_dispatch} người)"],
+            values=[stn_picking, stn_sorting, stn_packing, stn_dispatch],
+            hole=0.52,
+            marker=dict(colors=["#3b82f6", "#f59e0b", "#e11d48", "#10b981"]),
             textinfo='label+percent',
-            hovertemplate="<b>%{label}</b><br>Chiếm: %{percent}<extra></extra>"
+            hovertemplate="<b>%{label}</b><br>Tỷ lệ: %{percent}<extra></extra>"
         )])
-        fig_donut.update_layout(
-            title="<b>Tỷ Lệ Bố Trí Nhân Lực 4 Trạm Vận Hành</b>",
-            annotations=[dict(text=f"<b>{ai_staff_required}</b><br>Nhân sự", x=0.5, y=0.5, font_size=18, showarrow=False)],
+        fig_donut_staff.update_layout(
+            title="<b>Cơ Cấu Phân Bổ Nhân Sự (Người)</b>",
+            annotations=[dict(text=f"<b>{ai_staff_required}</b><br>Người", x=0.5, y=0.5, font_size=17, showarrow=False)],
             template='plotly_white',
             showlegend=False,
-            height=380,
+            height=340,
             margin=dict(t=50, b=20, l=20, r=20)
         )
-        st.plotly_chart(fig_donut, use_container_width=True)
+        st.plotly_chart(fig_donut_staff, use_container_width=True)
 
-    with col_st_info:
+    with ch_col2:
+        fig_donut_cost = go.Figure(data=[go.Pie(
+            labels=[f"🛒 Picking ({fmt_vnd(stn_picking_total)})", f"🗂️ Sorting ({fmt_vnd(stn_sorting_total)})", f"📦 Packing ({fmt_vnd(stn_packing_total)})", f"🚚 Dispatch ({fmt_vnd(stn_dispatch_total)})"],
+            values=[stn_picking_total, stn_sorting_total, stn_packing_total, stn_dispatch_total],
+            hole=0.52,
+            marker=dict(colors=["#60a5fa", "#fbbf24", "#f43f5e", "#34d399"]),
+            textinfo='label+percent',
+            hovertemplate="<b>%{label}</b><br>Tỷ lệ ngân sách: %{percent}<extra></extra>"
+        )])
+        fig_donut_cost.update_layout(
+            title="<b>Cơ Cấu Ngân Sách Vận Hành (VNĐ)</b>",
+            annotations=[dict(text=f"<b>{fmt_vnd(grand_stations_total)}</b>", x=0.5, y=0.5, font_size=15, showarrow=False)],
+            template='plotly_white',
+            showlegend=False,
+            height=340,
+            margin=dict(t=50, b=20, l=20, r=20)
+        )
+        st.plotly_chart(fig_donut_cost, use_container_width=True)
+
+    st.markdown("### 📋 Mô Tả Chức Năng, Nhiệm Vụ & Hạch Toán Chi Phí Từng Trạm")
+
+    st_col_left, st_col_right = st.columns(2)
+
+    with st_col_left:
+        # TRẠM 1: PICKING
         render_html(f"""
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; margin-bottom:10px;">
-            <div style="font-weight:700; color:#3b82f6; font-size:1.02rem;">🛒 1. Trạm Lấy Hàng (Picking - 35%): {stn_picking} người</div>
-            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
-                Nhặt hàng theo đợt sóng (Wave/Batch Picking). Trang bị máy quét PDA Barcode và xe đẩy Trolley đa ngăn.
+        <div style="background:#ffffff; border:1px solid #cbd5e1; border-top:5px solid #3b82f6; border-radius:14px; padding:20px; margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; color:#1e40af;">🛒 1. Trạm Lấy Hàng (Picking - Zone/Batch)</h4>
+                <span style="background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:12px; font-weight:700; font-size:0.85rem;">35% Nhân Sự</span>
             </div>
-        </div>
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; margin-bottom:10px;">
-            <div style="font-weight:700; color:#f59e0b; font-size:1.02rem;">🗂️ 2. Trạm Phân Loại (Sorting - 20%): {stn_sorting} người</div>
-            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
-                Phân chia theo mã bưu cục và tuyến giao hàng. Sử dụng hệ thống giá kệ chia hàng Put-to-Light.
+            <div style="margin:10px 0; padding:10px; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-around; font-size:0.9rem;">
+                <div>👤 <b>Nhân sự:</b> {stn_picking} người</div>
+                <div>💰 <b>Tổng chi phí:</b> {fmt_vnd(stn_picking_total)}</div>
+                <div>⚡ <b>Năng lực:</b> {fmt_num(stn_picking * capacity_per_person)} đơn</div>
             </div>
-        </div>
-        <div style="background:#fff1f2; border:1.5px solid #fecdd3; border-radius:14px; padding:16px; margin-bottom:10px;">
-            <div style="font-weight:700; color:#e11d48; font-size:1.02rem;">📦 3. Trạm Đóng Gói (Packing - 35%): {stn_packing} người ⚠️ ĐIỂM NGHẼN</div>
-            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
-                <b>Mắt xích thắt cổ chai (Bottleneck) lớn nhất:</b> Quấn màng xốp khí, dán nhãn vận đơn A6 Shopee/Lazada. Cần bố trí đủ bàn packing và cuộn băng keo sẵn sàng.
+            <p style="margin:6px 0; color:#334155; font-size:0.92rem;"><b>🎯 Chức năng cốt lõi:</b> Tiếp nhận danh sách đơn hàng xuất kho (Pick-list) từ hệ thống WMS, di chuyển đến đúng vị trí kệ để rút sản phẩm chính xác 100%.</p>
+            <div style="color:#475569; font-size:0.88rem; line-height:1.6;">
+                <b>📋 Nhiệm vụ cụ thể:</b><br>
+                • <b>Bước 1:</b> Đăng nhập máy quét PDA nhận phân vùng lấy hàng (Zone A/B/C).<br>
+                • <b>Bước 2:</b> Đẩy xe Trolley 6 ngăn di chuyển theo lộ trình tối ưu hình zíc-zắc (S-Shape) để tiết kiệm bước chân.<br>
+                • <b>Bước 3:</b> Quét mã vạch vị trí kệ (Location Barcode) → Quét mã vạch sản phẩm (SKU Barcode) → Đặt vào ngăn chỉ định.<br>
+                • <b>Bước 4:</b> Đẩy giỏ hàng đã đầy đến trạm phân loại (Sorting Station).
             </div>
-        </div>
-        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px;">
-            <div style="font-weight:700; color:#10b981; font-size:1.02rem;">🚚 4. Trạm Xuất Kho (Dispatch - 10%): {stn_dispatch} người</div>
-            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
-                Chất pallet, bắn mã bao hàng (Manifesting) và bàn giao xe tải cho các hãng vận chuyển (SPX, GHN, Viettel Post).
+            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #e2e8f0; font-size:0.85rem; color:#64748b;">
+                🛠️ <b>Công cụ & Vật tư:</b> Máy PDA quét mã vạch Honeywell/Zebra, xe đẩy Trolley đa tầng, găng tay PU chống trơn trượt.<br>
+                💸 <b>Hạch toán chi phí:</b> Tiền lương ca đêm ({stn_picking} × {fmt_num(wage_per_person)}đ = <b>{fmt_vnd(stn_picking_wage)}</b>) + Khấu hao PDA & găng tay (<b>{fmt_vnd(stn_picking_supplies)}</b>).
             </div>
         </div>
         """)
 
-    st.markdown("#### 📋 Bảng Định Mức Vận Hành Từng Khâu (Academic Operational Standards)")
-    st.dataframe(df_schedule, use_container_width=True, hide_index=True)
+        # TRẠM 3: PACKING (THẮT CỔ CHAI)
+        render_html(f"""
+        <div style="background:#fff1f2; border:1.5px solid #fecdd3; border-top:5px solid #e11d48; border-radius:14px; padding:20px; margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; color:#9f1239;">📦 3. Trạm Đóng Gói (Packing & Labeling) ⚠️ THẮT CỔ CHAI</h4>
+                <span style="background:#ffe4e6; color:#9f1239; padding:3px 10px; border-radius:12px; font-weight:700; font-size:0.85rem;">35% Nhân Sự</span>
+            </div>
+            <div style="margin:10px 0; padding:10px; background:#ffffff; border-radius:8px; display:flex; justify-content:space-around; font-size:0.9rem;">
+                <div>👤 <b>Nhân sự:</b> {stn_packing} người</div>
+                <div>💰 <b>Tổng chi phí:</b> {fmt_vnd(stn_packing_total)}</div>
+                <div>⚡ <b>Năng lực:</b> {fmt_num(stn_packing * capacity_per_person)} đơn</div>
+            </div>
+            <p style="margin:6px 0; color:#334155; font-size:0.92rem;"><b>🎯 Chức năng cốt lõi:</b> Bảo vệ an toàn cơ lý cho sản phẩm và dán nhãn vận đơn hợp lệ theo đúng tiêu chuẩn sàn TMĐT (Shopee/Lazada/TikTok).</p>
+            <div style="color:#475569; font-size:0.88rem; line-height:1.6;">
+                <b>📋 Nhiệm vụ cụ thể:</b><br>
+                • <b>Bước 1:</b> Quét mã kiện hàng nhận diện sản phẩm → Hệ thống tự động in tem vận chuyển A6 ra máy in nhiệt.<br>
+                • <b>Bước 2:</b> Chọn quy cách bao bì phù hợp (hộp carton sóng 3 lớp hoặc túi niêm phong PE chống xé).<br>
+                • <b>Bước 3:</b> Quấn 2-3 lớp màng bóng khí bọc hàng dễ vỡ (mỹ phẩm, gốm sứ), chèn túi khí chống rung lắc.<br>
+                • <b>Bước 4:</b> Dán kín băng keo đáy và nắp hộp hình chữ H → Dán phẳng tem nhiệt vận đơn lên mặt trên cùng.<br>
+                ⚠️ <i>Lưu ý: Đây là trạm tốn thời gian thao tác tay nhất (20-30 giây/đơn), nếu trạm này nghẽn thì toàn bộ kho bị tê liệt!</i>
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #fecdd3; font-size:0.85rem; color:#881337;">
+                🛠️ <b>Công cụ & Vật tư:</b> Bàn đóng gói công thái học, máy in nhiệt HPRT/Xprinter, cuộn màng xốp khí, dao cắt băng dính.<br>
+                💸 <b>Hạch toán chi phí:</b> Tiền lương ({stn_packing} × {fmt_num(wage_per_person)}đ = <b>{fmt_vnd(stn_packing_wage)}</b>) + Vật tư tiêu hao tem in & băng keo (<b>{fmt_vnd(stn_packing_supplies)}</b>).
+            </div>
+        </div>
+        """)
+
+    with st_col_right:
+        # TRẠM 2: SORTING
+        render_html(f"""
+        <div style="background:#ffffff; border:1px solid #cbd5e1; border-top:5px solid #f59e0b; border-radius:14px; padding:20px; margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; color:#b45309;">🗂️ 2. Trạm Phân Loại & Gom Đơn (Sorting & Consolidation)</h4>
+                <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:12px; font-weight:700; font-size:0.85rem;">20% Nhân Sự</span>
+            </div>
+            <div style="margin:10px 0; padding:10px; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-around; font-size:0.9rem;">
+                <div>👤 <b>Nhân sự:</b> {stn_sorting} người</div>
+                <div>💰 <b>Tổng chi phí:</b> {fmt_vnd(stn_sorting_total)}</div>
+                <div>⚡ <b>Năng lực:</b> {fmt_num(stn_sorting * capacity_per_person)} đơn</div>
+            </div>
+            <p style="margin:6px 0; color:#334155; font-size:0.92rem;"><b>🎯 Chức năng cốt lõi:</b> Tách lọc các mặt hàng nhặt theo lô (Batch) về đúng từng đơn hàng của từng khách lẻ (Đơn 1 món vs Đơn nhiều món).</p>
+            <div style="color:#475569; font-size:0.88rem; line-height:1.6;">
+                <b>📋 Nhiệm vụ cụ thể:</b><br>
+                • <b>Bước 1:</b> Tiếp nhận giỏ hàng Trolley từ trạm lấy hàng đẩy sang.<br>
+                • <b>Bước 2:</b> Bắn mã vạch từng món hàng → Kệ chia hàng thông minh Put-to-Light sẽ sáng đèn LED tại ô chứa đơn tương ứng.<br>
+                • <b>Bước 3:</b> Đặt sản phẩm vào ô sáng đèn → Nhấn nút xác nhận hoàn thành.<br>
+                • <b>Bước 4:</b> Khi ô chứa đã đủ 100% món của đơn (Complete), đèn chuyển sang màu xanh lá → Chuyển giỏ hàng sang trạm Packing.
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #e2e8f0; font-size:0.85rem; color:#64748b;">
+                🛠️ <b>Công cụ & Vật tư:</b> Giá kệ Put-to-Light tích hợp cảm biến LED, khay nhựa Tote đa năng, máy quét để bàn gắn cố định.<br>
+                💸 <b>Hạch toán chi phí:</b> Tiền lương ca đêm ({stn_sorting} × {fmt_num(wage_per_person)}đ = <b>{fmt_vnd(stn_sorting_wage)}</b>) + Khấu hao khay nhựa & kệ (<b>{fmt_vnd(stn_sorting_supplies)}</b>).
+            </div>
+        </div>
+        """)
+
+        # TRẠM 4: DISPATCH
+        render_html(f"""
+        <div style="background:#ffffff; border:1px solid #cbd5e1; border-top:5px solid #10b981; border-radius:14px; padding:20px; margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; color:#047857;">🚚 4. Trạm Xuất Kho & Bàn Giao Xe Tải (Dispatch & Handover)</h4>
+                <span style="background:#d1fae5; color:#047857; padding:3px 10px; border-radius:12px; font-weight:700; font-size:0.85rem;">10% Nhân Sự</span>
+            </div>
+            <div style="margin:10px 0; padding:10px; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-around; font-size:0.9rem;">
+                <div>👤 <b>Nhân sự:</b> {stn_dispatch} người</div>
+                <div>💰 <b>Tổng chi phí:</b> {fmt_vnd(stn_dispatch_total)}</div>
+                <div>⚡ <b>Năng lực:</b> {fmt_num(stn_dispatch * capacity_per_person)} đơn</div>
+            </div>
+            <p style="margin:6px 0; color:#334155; font-size:0.92rem;"><b>🎯 Chức năng cốt lõi:</b> Phân loại đơn hàng theo từng nhà xe/bưu cục vận chuyển (3PL), niêm phong túi bao hàng và bàn giao xe tải đúng khung giờ cam kết (SLA Cut-off).</p>
+            <div style="color:#475569; font-size:0.88rem; line-height:1.6;">
+                <b>📋 Nhiệm vụ cụ thể:</b><br>
+                • <b>Bước 1:</b> Quét mã vạch tiếp nhận đơn đã đóng gói từ trạm Packing chuyển qua.<br>
+                • <b>Bước 2:</b> Bắn mã gộp đơn vào từng túi bao tải chuyên dụng theo từng hãng (Bao SPX, Bao GHN, Bao Viettel Post, Bao J&T).<br>
+                • <b>Bước 3:</b> Bấm kẹp chì / seal nhựa niêm phong miệng bao tải → In biên bản bàn giao bàn giao hàng loạt (Handover Manifest).<br>
+                • <b>Bước 4:</b> Dùng xe nâng tay kéo các kiện Pallet xếp gọn lên thùng xe tải của các đối tác vận chuyển trước 02h15 sáng.
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #e2e8f0; font-size:0.85rem; color:#64748b;">
+                🛠️ <b>Công cụ & Vật tư:</b> Xe nâng tay thủy lực (Hand Pallet Truck), màng co PE quấn Pallet, kẹp chì seal niêm phong, máy in Manifest.<br>
+                💸 <b>Hạch toán chi phí:</b> Tiền lương ({stn_dispatch} × {fmt_num(wage_per_person)}đ = <b>{fmt_vnd(stn_dispatch_wage)}</b>) + Seal nhựa & màng quấn (<b>{fmt_vnd(stn_dispatch_supplies)}</b>).
+            </div>
+        </div>
+        """)
+
+    # BẢNG TỔNG KẾT NGÂN SÁCH ĐIỀU HÀNH KHO CHI TIẾT
+    st.markdown("#### 📊 Bảng Hạch Toán Toàn Diện Chi Phí Vận Hành 4 Trạm (Station Budget Master Table)")
+    station_master_data = [
+        {
+            "Mã Trạm": "STN-01",
+            "Tên Trạm Vận Hành": "🛒 Lấy hàng (Picking - Batching)",
+            "Tỷ Lệ": "35%",
+            "Nhân Sự (Người)": stn_picking,
+            "Tiền Lương Ca Đêm (VNĐ)": fmt_vnd(stn_picking_wage),
+            "Chi Phí Vật Tư / Thiết Bị (VNĐ)": fmt_vnd(stn_picking_supplies),
+            "TỔNG CHI PHÍ TRẠM (VNĐ)": fmt_vnd(stn_picking_total),
+            "Chi Phí / Đơn Hàng": f"{(stn_picking_total / total_orders):,.0f} đ/đơn" if total_orders > 0 else "0 đ",
+            "Mức Độ Rủi Ro": "Trung bình (Đi bộ nhiều)"
+        },
+        {
+            "Mã Trạm": "STN-02",
+            "Tên Trạm Vận Hành": "🗂️ Phân loại & Gom đơn (Sorting)",
+            "Tỷ Lệ": "20%",
+            "Nhân Sự (Người)": stn_sorting,
+            "Tiền Lương Ca Đêm (VNĐ)": fmt_vnd(stn_sorting_wage),
+            "Chi Phí Vật Tư / Thiết Bị (VNĐ)": fmt_vnd(stn_sorting_supplies),
+            "TỔNG CHI PHÍ TRẠM (VNĐ)": fmt_vnd(stn_sorting_total),
+            "Chi Phí / Đơn Hàng": f"{(stn_sorting_total / total_orders):,.0f} đ/đơn" if total_orders > 0 else "0 đ",
+            "Mức Độ Rủi Ro": "Thấp (Có LED hỗ trợ)"
+        },
+        {
+            "Mã Trạm": "STN-03",
+            "Tên Trạm Vận Hành": "📦 Đóng gói & Dán nhãn (Packing)",
+            "Tỷ Lệ": "35%",
+            "Nhân Sự (Người)": stn_packing,
+            "Tiền Lương Ca Đêm (VNĐ)": fmt_vnd(stn_packing_wage),
+            "Chi Phí Vật Tư / Thiết Bị (VNĐ)": fmt_vnd(stn_packing_supplies),
+            "TỔNG CHI PHÍ TRẠM (VNĐ)": fmt_vnd(stn_packing_total),
+            "Chi Phí / Đơn Hàng": f"{(stn_packing_total / total_orders):,.0f} đ/đơn" if total_orders > 0 else "0 đ",
+            "Mức Độ Rủi Ro": "🔴 CAO NHẤT (Thắt cổ chai)"
+        },
+        {
+            "Mã Trạm": "STN-04",
+            "Tên Trạm Vận Hành": "🚚 Bàn giao xuất kho (Dispatch)",
+            "Tỷ Lệ": "10%",
+            "Nhân Sự (Người)": stn_dispatch,
+            "Tiền Lương Ca Đêm (VNĐ)": fmt_vnd(stn_dispatch_wage),
+            "Chi Phí Vật Tư / Thiết Bị (VNĐ)": fmt_vnd(stn_dispatch_supplies),
+            "TỔNG CHI PHÍ TRẠM (VNĐ)": fmt_vnd(stn_dispatch_total),
+            "Chi Phí / Đơn Hàng": f"{(stn_dispatch_total / total_orders):,.0f} đ/đơn" if total_orders > 0 else "0 đ",
+            "Mức Độ Rủi Ro": "Trung bình (Áp lực giờ xe chạy)"
+        },
+        {
+            "Mã Trạm": "TỔNG CỘNG",
+            "Tên Trạm Vận Hành": "🏭 TOÀN BỘ DÂY CHUYỀN KHO FLASH SALE",
+            "Tỷ Lệ": "100%",
+            "Nhân Sự (Người)": ai_staff_required,
+            "Tiền Lương Ca Đêm (VNĐ)": fmt_vnd(ai_wage_cost),
+            "Chi Phí Vật Tư / Thiết Bị (VNĐ)": fmt_vnd(stn_picking_supplies + stn_sorting_supplies + stn_packing_supplies + stn_dispatch_supplies),
+            "TỔNG CHI PHÍ TRẠM (VNĐ)": fmt_vnd(grand_stations_total),
+            "Chi Phí / Đơn Hàng": f"{(grand_stations_total / total_orders):,.0f} đ/đơn" if total_orders > 0 else "0 đ",
+            "Mức Độ Rủi Ro": "✅ KIỂM SOÁT AN TOÀN 100%"
+        }
+    ]
+    df_station_master = pd.DataFrame(station_master_data)
+    st.dataframe(df_station_master, use_container_width=True, hide_index=True)
 
 
 # ─────────────────────────────────────────────────────────────────────
