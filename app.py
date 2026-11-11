@@ -45,8 +45,19 @@ def render_html(content: str):
 # Custom CSS cho phong cách Modern Executive Logistics Dashboard
 render_html("""
 <style>
-    html, body, [class*="css"], [class*="st-"] {
+    /* Áp dụng font chữ chuẩn cho văn bản, không ép lên icon hệ thống */
+    html, body, .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, label, button, input {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    
+    /* Bảo vệ biểu tượng mũi tên expander và icon Streamlit không bị vỡ thành chữ (_arrow_right) */
+    [data-testid*="Icon"],
+    [data-testid="stExpanderToggleIcon"],
+    [data-testid="stIconMaterial"],
+    .material-symbols-rounded,
+    .material-icons,
+    span[data-testid="stExpanderToggleIcon"] {
+        font-family: "Material Symbols Rounded", "Material Icons" !important;
     }
     
     #MainMenu {visibility: hidden;}
@@ -321,8 +332,8 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # 3. Thông số định mức học thuật (Academic Constants)
-    with st.expander("⚙️ Tham số Định mức Vận Hành Tiêu Chuẩn (UPH)", expanded=False):
+    # 3. Thông số định mức vận hành chuẩn
+    with st.expander("⚙️ Định Mức Vận Hành (UPH)", expanded=False):
         uph = st.number_input("Năng suất 1 người (UPH = Đơn/giờ):", value=40, step=5, min_value=10, max_value=100)
         shift_hours = st.number_input("Thời lượng ca Flash Sale (giờ):", value=2, min_value=1, max_value=6)
         risk_alpha = st.slider("Hệ số rủi ro dự phòng α (%):", min_value=0, max_value=20, value=5, step=1)
