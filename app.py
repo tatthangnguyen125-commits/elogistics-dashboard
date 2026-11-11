@@ -50,19 +50,45 @@ render_html("""
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     
-    /* Bảo vệ biểu tượng mũi tên expander và icon Streamlit không bị vỡ thành chữ (_arrow_right) */
+    /* Bảo vệ biểu tượng icon của Streamlit không bị vỡ thành chữ */
     [data-testid*="Icon"],
     [data-testid="stExpanderToggleIcon"],
     [data-testid="stIconMaterial"],
+    [data-testid="collapsedControl"] *,
     .material-symbols-rounded,
     .material-icons,
     span[data-testid="stExpanderToggleIcon"] {
         font-family: "Material Symbols Rounded", "Material Icons" !important;
     }
     
+    /* Ẩn footer và menu phụ không cần thiết */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+    [data-testid="stToolbar"] {visibility: hidden;}
+    [data-testid="stDecoration"] {display: none;}
+    
+    /* Header trong suốt nhưng GIỮ NGUYÊN nút mở Sidebar ở góc trên bên trái */
+    header {
+        background: transparent !important;
+    }
+    
+    /* Hiển thị rõ nét nút mở Sidebar (collapsedControl) ở góc trái khi sidebar bị đóng */
+    [data-testid="collapsedControl"] {
+        visibility: visible !important;
+        display: flex !important;
+        color: #0f172a !important;
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        z-index: 999999 !important;
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+    }
+    [data-testid="collapsedControl"]:hover {
+        background: #f1f5f9 !important;
+        border-color: #3b82f6 !important;
+    }
 
     /* Executive Hero Header */
     .hero-banner {
