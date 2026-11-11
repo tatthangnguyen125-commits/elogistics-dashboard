@@ -15,8 +15,15 @@ import numpy as np
 import pandas as pd
 import os
 import io
-import qrcode
-from PIL import Image
+
+try:
+    import qrcode
+    from PIL import Image
+    HAS_QRCODE = True
+except ImportError:
+    HAS_QRCODE = False
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ╔═════════════════════════════════════════════════════════════════════╗
 # ║                     1. CẤU HÌNH TRANG VÀ GIAO DIỆN                  ║
@@ -623,7 +630,7 @@ with tab_model_connect:
     Dưới đây là mô phỏng việc trích xuất dự báo trực tiếp từ tập dữ liệu kho hàng:
     """)
 
-    csv_path = r"C:\Users\Admin\.gemini\antigravity\scratch\elogistics_dashboard\hourly_aggregated.csv"
+    csv_path = os.path.join(BASE_DIR, "hourly_aggregated.csv")
     if os.path.exists(csv_path):
         hourly_df = pd.read_csv(csv_path)
         hourly_df['Ngày Sale'] = pd.to_datetime(hourly_df['Ngày Sale'])
@@ -648,7 +655,7 @@ with tab_model_connect:
 
             # Dự báo bằng model đã lưu
             import joblib
-            model_path = r"C:\Users\Admin\.gemini\antigravity\scratch\elogistics_dashboard\model_xgb.joblib"
+            model_path = os.path.join(BASE_DIR, "model_xgb.joblib")
             if os.path.exists(model_path):
                 model_xgb = joblib.load(model_path)
                 features_val = row_match[['Giờ', 'DayOfWeek', 'Day', 'IsWeekend', 'IsFlashSaleHour', 'IsMegaDay', 'So_SKU_HoatDong']]
@@ -816,27 +823,31 @@ with tab_deploy_qr:
             help="Sau khi deploy lên Streamlit Cloud hoặc chạy ngrok/localtunnel, hãy dán link vào đây"
         )
 
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_H,
-            box_size=10,
-            border=3,
-        )
-        qr.add_data(app_url)
-        qr.make(fit=True)
-        img_qr = qr.make_image(fill_color="#0f172a", back_color="#ffffff")
+        if HAS_QRCODE:
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_H,
+                box_size=10,
+                border=3,
+            )
+            qr.add_data(app_url)
+            qr.make(fit=True)
+            img_qr = qr.make_image(fill_color="#0f172a", back_color="#ffffff")
 
-        buf = io.BytesIO()
-        img_qr.save(buf, format="PNG")
-        byte_im = buf.getvalue()
+            buf = io.BytesIO()
+            img_qr.save(buf, format="PNG")
+            byte_im = buf.getvalue()
 
-        st.download_button(
-            label="📥 Tải Ảnh Mã QR (.PNG) Để Chèn Vào Canva",
-            data=byte_im,
-            file_name="qr_code_canva_demo_tv5.png",
-            mime="image/png",
-            use_container_width=True
-        )
+            st.download_button(
+                label="📥 Tải Ảnh Mã QR (.PNG) Để Chèn Vào Canva",
+                data=byte_im,
+                file_name="qr_code_canva_demo_tv5.png",
+                mime="image/png",
+                use_container_width=True
+            )
+        else:
+            byte_im = f"https://api.qrserver.com/v1/create-qr-code/?size=280x280&data={app_url}"
+            st.info("💡 Mã QR được tạo động trực tuyến.")
 
         st.markdown("""
         #### 🚀 3 Bước Triển Khai Miễn Phí Lên Streamlit Cloud:
