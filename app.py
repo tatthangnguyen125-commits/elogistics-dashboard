@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-🏭 E-LOGISTICS AI WORKFORCE PLANNER (NHIỆM VỤ 5)
+🏭 E-LOGISTICS AI WORKFORCE PLANNER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Hệ thống AI dự báo & tối ưu hóa nhân sự kho hàng Flash Sale
-Tác giả: Thành viên 5 — Phân bổ Nhân sự & Bài toán Kinh tế
-Tích hợp: Mô hình Machine Learning XGBoost (Thành viên 4) & Định mức UPH (Thành viên 6)
+Giải pháp: Phân bổ Nhân sự Linh hoạt & Tối ưu Hóa Hiệu Quả Kinh Tế
+Tích hợp: Mô hình Machine Learning XGBoost & Định mức UPH Chuẩn Vận Hành
 """
 
 import streamlit as st
@@ -29,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # ║                     1. CẤU HÌNH TRANG VÀ GIAO DIỆN                  ║
 # ╚═════════════════════════════════════════════════════════════════════╝
 st.set_page_config(
-    page_title="E-Logistics AI Workforce Planner | Nhiệm vụ 5",
+    page_title="E-Logistics AI Workforce Planner | Hệ Thống Tối Ưu Nhân Lực Kho",
     page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -271,7 +271,7 @@ def fmt_num(n: float) -> str:
 # ╚═════════════════════════════════════════════════════════════════════╝
 with st.sidebar:
     st.markdown("### 🏭 BỘ ĐIỀU KHIỂN DEMO")
-    st.caption("Dành riêng cho buổi Báo cáo & Thuyết trình của Thành viên 5")
+    st.caption("Hệ Thống Quản Trị Vận Hành & Mô Phỏng Nhân Lực Kho")
     st.markdown("---")
 
     # 1. Preset nút bấm chuyển nhanh kịch bản cho Giảng viên
@@ -322,7 +322,7 @@ with st.sidebar:
     st.markdown("---")
 
     # 3. Thông số định mức học thuật (Academic Constants)
-    with st.expander("⚙️ Tham số Định mức Học thuật (TV6)", expanded=False):
+    with st.expander("⚙️ Tham số Định mức Vận Hành Tiêu Chuẩn (UPH)", expanded=False):
         uph = st.number_input("Năng suất 1 người (UPH = Đơn/giờ):", value=40, step=5, min_value=10, max_value=100)
         shift_hours = st.number_input("Thời lượng ca Flash Sale (giờ):", value=2, min_value=1, max_value=6)
         risk_alpha = st.slider("Hệ số rủi ro dự phòng α (%):", min_value=0, max_value=20, value=5, step=1)
@@ -336,7 +336,7 @@ with st.sidebar:
     ot_rate_per_order = (base_hourly * ot_multiplier) / uph  # 70.000 / 40 = 1.750 đ/đơn
     risk_factor = 1.0 + (risk_alpha / 100.0)  # 1.05
 
-    st.markdown("#### 📐 Công thức TV5 bảo vệ")
+    st.markdown("#### 📐 Công thức Định Mức Nhân Lực AI")
     st.latex(r"\text{NS AI} = \left\lceil \frac{\text{Đơn}}{" + str(int(capacity_per_person)) + r"} \times " + f"{risk_factor:.2f}" + r" \right\rceil")
 
 
@@ -380,8 +380,8 @@ render_html("""
         </div>
     </div>
     <div class="hero-tags">
-        <span class="badge badge-blue">📌 Nhiệm vụ 5: Demo Live Thuyết Trình</span>
-        <span class="badge badge-green">🤖 Tích hợp XGBoost (TV4) & UPH (TV6)</span>
+        <span class="badge badge-blue">📌 E-Logistics Smart Workforce</span>
+        <span class="badge badge-green">🤖 Tích hợp AI XGBoost & Định mức UPH Chuẩn</span>
         <span class="badge badge-purple">🎯 Mục tiêu: Xóa sạch 100% Backlog & Tối ưu Chi phí</span>
     </div>
 </div>
@@ -956,7 +956,7 @@ with tab_stations:
 with tab_model_connect:
     st.markdown("### ⏱️ Dữ Liệu Đơn Hàng 24 Giờ Thời Gian Thực & Ma Trận Xếp Ca Full-time / Part-time")
     st.markdown("""
-    Phân tích chi tiết dòng chảy đơn hàng 24 khung giờ trong ngày từ mô hình **XGBoost (Thành viên 4)** 
+    Phân tích chi tiết dòng chảy đơn hàng 24 khung giờ trong ngày từ mô hình Machine Learning **XGBoost** 
     giúp người quản lý kho nhìn thấy rõ **thời điểm đơn bùng nổ (Peak Hour)** và **thời điểm thấp điểm (Valley Hour)**.
     Từ đó, áp dụng chiến lược điều phối **Hybrid Workforce**: Kết hợp **Full-time (Nòng cốt 8h)** và **Part-time (Thời vụ ngắn hạn 2-3h)** 
     để tối ưu hóa triệt để chi phí quỹ lương mà không để xảy ra tồn đọng!
@@ -1267,10 +1267,10 @@ with tab_model_connect:
 
         st.markdown("---")
         # 4. SO SÁNH ĐỐI CHỨNG 2 THUẬT TOÁN: LINEAR REGRESSION VS XGBOOST
-        st.markdown("#### 🔬 4. So Sánh Đối Chứng Thuật Toán Machine Learning: Linear Regression vs XGBoost (TV4)")
+        st.markdown("#### 🔬 4. So Sánh Đối Chứng Thuật Toán Machine Learning: Linear Regression vs XGBoost")
         st.markdown("""
-        Để tìm ra mô hình dự báo chính xác nhất cho bài toán xếp ca của Thành viên 5, 
-        **Thành viên 4** đã triển khai thực nghiệm đối chứng trực tiếp giữa 2 lớp thuật toán trên cùng tập dữ liệu kho hàng gom nhóm (323 mẫu, phân chia 80% Train - 20% Test):
+        Để tìm ra mô hình dự báo chính xác nhất cho bài toán xếp ca vận hành kho hàng, 
+        hệ thống đã triển khai thực nghiệm đối chứng trực tiếp giữa 2 lớp thuật toán trên cùng tập dữ liệu kho hàng gom nhóm (323 mẫu, phân chia 80% Train - 20% Test):
         * **Mô hình cơ sở (Baseline):** **Linear Regression (Hồi quy tuyến tính đa biến)** — Phương pháp thống kê cổ điển.
         * **Mô hình đề xuất (Proposed):** **XGBoost / Gradient Boosting Regressor** — Thuật toán học máy tăng cường gradient qua cây quyết định.
         """)
@@ -1394,7 +1394,7 @@ with tab_model_connect:
                     <tr style="background:#0f172a; color:#ffffff;">
                         <th style="padding:12px 16px; text-align:left;">Tiêu Chí Đánh Giá</th>
                         <th style="padding:12px 16px; text-align:left; color:#fca5a5;">⚠️ Linear Regression (Baseline)</th>
-                        <th style="padding:12px 16px; text-align:left; color:#86efac;">🏆 XGBoost (Đề Xuất - Lựa Chọn Của TV4)</th>
+                        <th style="padding:12px 16px; text-align:left; color:#86efac;">🏆 XGBoost (Mô Hình Đề Xuất Tối Ưu)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1414,7 +1414,7 @@ with tab_model_connect:
                         <td style="padding:12px 16px; color:#0f172a; font-weight:600;">Cây quyết định tự động tạo nhánh rẽ logic kết hợp: <br><code>if IsMegaDay == 1 and IsFlashSaleHour == 1: boost +500</code>.</td>
                     </tr>
                     <tr style="background:#f0fdf4;">
-                        <td style="padding:12px 16px; font-weight:600; color:#15803d;">4. HẬU QUẢ VẬN HÀNH KHO (TV5)</td>
+                        <td style="padding:12px 16px; font-weight:600; color:#15803d;">4. HẬU QUẢ VẬN HÀNH KHO THỰC TẾ</td>
                         <td style="padding:12px 16px; color:#b91c1c;"><b>VỠ KHO TRẦM TRỌNG:</b> Quản lý chỉ gọi <b>5 - 6 nhân viên</b> (dựa trên 387 đơn) &rarr; Thiếu 4 nhân viên &rarr; Hàng trăm đơn trễ hạn, sàn TMĐT phạt nặng!</td>
                         <td style="padding:12px 16px; color:#15803d; font-weight:700;"><b>VẬN HÀNH HOÀN HẢO:</b> Quản lý huy động đủ <b>10 nhân viên</b> (dựa trên 697 đơn) &rarr; Xóa sạch 100% Backlog, tiết kiệm chi phí tối đa!</td>
                     </tr>
@@ -1687,12 +1687,12 @@ with tab_roi:
 # ─────────────────────────────────────────────────────────────────────
 with tab_defense_qa:
     st.markdown("### 🛡️ Cẩm Nang Vượt Qua Vòng Phản Biện Của Giảng Viên")
-    st.info("💡 Đây là những câu hỏi chắc chắn Giảng viên sẽ chất vấn Thành viên 5. Hãy học thuộc các luận điểm dưới đây:")
+    st.info("💡 Các câu hỏi phản biện trọng tâm từ Hội đồng & Luận điểm giải trình chuyên môn:")
 
-    with st.expander("❓ Câu 1: Dựa vào đâu nhóm tính ra định mức 1 người xử lý 80 đơn/ca?", expanded=True):
+    with st.expander("❓ Câu 1: Dựa vào đâu hệ thống tính ra định mức 1 người xử lý 80 đơn/ca?", expanded=True):
         st.markdown("""
         **Trả lời học thuật chuẩn mực:**
-        - Năng lực $UPH = 40$ đơn/giờ được lấy từ **định mức nhân văn của Thành viên 6** (đã trừ thời gian nghỉ giải lao, giao nhận ca và kiểm tra an toàn lao động theo tiêu chuẩn ILO).
+        - Năng lực $UPH = 40$ đơn/giờ được xây dựng từ **định mức kỹ thuật vận hành chuẩn nhân văn** (đã trừ thời gian nghỉ giải lao, giao nhận ca và kiểm tra an toàn lao động theo tiêu chuẩn ILO).
         - Ca Flash Sale ban đêm diễn ra cao điểm từ **00:00 đến 02:00** (thời lượng 2 tiếng).
         - Năng lực định mức:
         """)
@@ -1715,10 +1715,10 @@ with tab_defense_qa:
         """)
         st.latex(r"\text{ROI Rủi ro} = \frac{109.600.000 - 3.920.000}{3.920.000} \approx 27 \text{ lần}")
 
-    with st.expander("❓ Câu 4: Mô hình AI XGBoost có thể sai số, nhóm xử lý việc đó như thế nào?"):
+    with st.expander("❓ Câu 4: Mô hình AI XGBoost có thể sai số, hệ thống xử lý việc đó như thế nào?"):
         st.markdown(r"""
         **Trả lời:**
-        - Mô hình XGBoost của Thành viên 4 đạt độ chính xác $R^2 = 92.50\%$ với sai số tuyệt đối trung bình $MAE \approx 17$ đơn.
+        - Mô hình Machine Learning XGBoost đạt độ chính xác $R^2 = 92.50\%$ với sai số tuyệt đối trung bình $MAE \approx 17$ đơn.
         - Với lượng đơn 6.500, sai số 17 đơn chỉ tương đương **0.26%**, hoàn toàn được triệt tiêu bởi hệ số đệm an toàn $\alpha = 5\%$ (tương đương đệm thêm 380 đơn).
         - Vì vậy, rủi ro sai số của mô hình được bao bọc an toàn 100% trong thực tế.
         """)
@@ -1761,7 +1761,7 @@ with tab_deploy_qr:
             st.download_button(
                 label="📥 Tải Ảnh Mã QR (.PNG) Để Chèn Vào Canva",
                 data=byte_im,
-                file_name="qr_code_canva_demo_tv5.png",
+                file_name="qr_code_elogistics_demo.png",
                 mime="image/png",
                 use_container_width=True
             )
@@ -1786,7 +1786,7 @@ with tab_deploy_qr:
 st.markdown("---")
 render_html("""
 <div style="text-align: center; color: #64748b; font-size: 0.85rem; padding-bottom: 25px;">
-    🏭 <b>Đồ Án Môn Học E-Logistics & Supply Chain Management</b> | Nhiệm vụ 5: Tối ưu Hóa Nhân Sự & Hiệu Quả Kinh Tế<br>
+    🏭 <b>Hệ Thống Quản Trị Kho Vận E-Logistics Thông Minh</b> | Tối ưu Hóa Phân Bổ Nhân Lực & Hiệu Quả Kinh Tế Flash Sale<br>
     Được xây dựng với Python, Streamlit & Plotly Interactive Charts.
 </div>
 """)
