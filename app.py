@@ -388,12 +388,14 @@ render_html("""
 """)
 
 # Tabs Điều Hướng Chính
-tab_dashboard, tab_model_connect, tab_sensitivity, tab_defense_qa, tab_deploy_qr = st.tabs([
+tab_dashboard, tab_stations, tab_model_connect, tab_sensitivity, tab_roi, tab_defense_qa, tab_deploy_qr = st.tabs([
     "📊 1. LIVE DEMO ĐỐI CHỨNG",
-    "🤖 2. KẾT NỐI MÔ HÌNH XGBOOST (TV4)",
-    "📈 3. PHÂN TÍCH ĐỘ NHẠY KINH TẾ",
-    "🛡️ 4. CẨM NĂNG BẢO VỆ PHẢN BIỆN",
-    "📱 5. DEPLOY & TẠO QR CHO CANVA"
+    "🏢 2. PHÂN BỔ 4 TRẠM KHO",
+    "🤖 3. KẾT NỐI XGBOOST (TV4)",
+    "📈 4. ĐỘ NHẠY KINH TẾ",
+    "💰 5. MÁY TÍNH ROI & HÒA VỐN",
+    "🛡️ 6. CẨM NĂNG BẢO VỆ PHẢN BIỆN",
+    "📱 7. DEPLOY & TẠO QR CANVA"
 ])
 
 # ─────────────────────────────────────────────────────────────────────
@@ -622,9 +624,119 @@ with tab_dashboard:
         )
         st.plotly_chart(fig_cap, use_container_width=True)
 
+    # ─── NÚT XUẤT KẾ HOẠCH CA TRỰC RA FILE CSV ───
+    st.markdown("---")
+    st.markdown("### 📥 Xuất Bảng Kế Hoạch Vận Hành Ca Trực Thực Tế")
+    st.caption("Tải bảng phân công chi tiết để in dán tại kho hoặc nộp kèm báo cáo đồ án cho Giảng viên")
+
+    exp_col1, exp_col2 = st.columns([3, 1])
+    with exp_col1:
+        st.markdown(f"""
+        - 📦 **Tổng đơn dự báo:** {fmt_num(total_orders)} đơn | 👷 **Tổng nhân sự:** {ai_staff_required} người
+        - ⚡ **Khung giờ làm việc:** 00:00 - 02:00 (2 tiếng) | 🛡️ **Độ phủ cam kết SLA:** 100%
+        """)
+
+    stn_picking = max(1, round(ai_staff_required * 0.35))
+    stn_sorting = max(1, round(ai_staff_required * 0.20))
+    stn_packing = max(1, round(ai_staff_required * 0.35))
+    stn_dispatch = max(1, ai_staff_required - stn_picking - stn_sorting - stn_packing)
+
+    schedule_data = [
+        {"STT": 1, "Vị Trí Công Việc": "1. Lấy hàng (Picking - Batching)", "Tỷ Lệ": "35%", "Số Lượng (Người)": stn_picking, "Định Mức (Đơn/H)": uph, "Tổng Năng Lực (Đơn)": stn_picking * capacity_per_person, "Trang Thiết Bị": "Máy quét PDA, Xe Trolley 6 ngăn", "Ghi Chú Vận Hành": "Nhặt hàng theo zone kệ A, B, C"},
+        {"STT": 2, "Vị Trí Công Việc": "2. Phân loại & Gom đơn (Sorting)", "Tỷ Lệ": "20%", "Số Lượng (Người)": stn_sorting, "Định Mức (Đơn/H)": int(uph * 1.5), "Tổng Năng Lực (Đơn)": stn_sorting * capacity_per_person, "Trang Thiết Bị": "Kệ Put-to-Light, Giỏ phân chia", "Ghi Chú Vận Hành": "Gom hàng đơn lẻ vào từng kiện"},
+        {"STT": 3, "Vị Trí Công Việc": "3. Đóng gói & Dán tem (Packing - Thắt cổ chai)", "Tỷ Lệ": "35%", "Số Lượng (Người)": stn_packing, "Định Mức (Đơn/H)": uph, "Tổng Năng Lực (Đơn)": stn_packing * capacity_per_person, "Trang Thiết Bị": "Bàn đóng gói, Máy in nhiệt A6, Băng keo", "Ghi Chú Vận Hành": "Mắt xích trọng yếu - Ưu tiên hỗ trợ"},
+        {"STT": 4, "Vị Trí Công Việc": "4. Xuất kho & Bàn giao xe tải (Dispatch)", "Tỷ Lệ": "10%", "Số Lượng (Người)": stn_dispatch, "Định Mức (Đơn/H)": uph * 2, "Tổng Năng Lực (Đơn)": stn_dispatch * capacity_per_person, "Trang Thiết Bị": "Xe nâng tay, Pallet, Seal niêm phong", "Ghi Chú Vận Hành": "Bàn giao đơn vị SPX / GHN / J&T"}
+    ]
+    df_schedule = pd.DataFrame(schedule_data)
+
+    csv_buffer = io.StringIO()
+    df_schedule.to_csv(csv_buffer, index=False, encoding="utf-8-sig")
+    csv_bytes = csv_buffer.getvalue().encode("utf-8-sig")
+
+    with exp_col2:
+        st.download_button(
+            label="📥 Tải Bảng Phân Công (.CSV)",
+            data=csv_bytes,
+            file_name=f"ke_hoach_ca_truc_{total_orders}_don.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
 
 # ─────────────────────────────────────────────────────────────────────
-# TAB 2: KẾT NỐI MÔ HÌNH XGBOOST (TV4)
+# TAB 2: SƠ ĐỒ PHÂN BỔ 4 TRẠM KHO (CHUYÊN MÔN LOGISTICS CAO CẤP)
+# ─────────────────────────────────────────────────────────────────────
+with tab_stations:
+    st.markdown("### 🏢 Phân Bổ Nhân Sự Chi Tiết Vào 4 Trạm Nghiệp Vụ Kho")
+    st.markdown("""
+    Trong kho logistics thực tế, **nhân sự không làm việc chung một khâu** mà được điều phối 
+    theo **quy trình dây chuyền 4 trạm** nhằm triệt tiêu điểm nghẽn (Bottleneck):
+    """)
+
+    col_st_chart, col_st_info = st.columns([5, 6])
+
+    with col_st_chart:
+        station_labels = [
+            f"🛒 Picking ({stn_picking} người)",
+            f"🗂️ Sorting ({stn_sorting} người)",
+            f"📦 Packing ({stn_packing} người)",
+            f"🚚 Dispatch ({stn_dispatch} người)"
+        ]
+        station_values = [stn_picking, stn_sorting, stn_packing, stn_dispatch]
+        station_colors = ["#3b82f6", "#f59e0b", "#ec4899", "#10b981"]
+
+        fig_donut = go.Figure(data=[go.Pie(
+            labels=station_labels,
+            values=station_values,
+            hole=0.55,
+            marker=dict(colors=station_colors),
+            textinfo='label+percent',
+            hovertemplate="<b>%{label}</b><br>Chiếm: %{percent}<extra></extra>"
+        )])
+        fig_donut.update_layout(
+            title="<b>Tỷ Lệ Bố Trí Nhân Lực 4 Trạm Vận Hành</b>",
+            annotations=[dict(text=f"<b>{ai_staff_required}</b><br>Nhân sự", x=0.5, y=0.5, font_size=18, showarrow=False)],
+            template='plotly_white',
+            showlegend=False,
+            height=380,
+            margin=dict(t=50, b=20, l=20, r=20)
+        )
+        st.plotly_chart(fig_donut, use_container_width=True)
+
+    with col_st_info:
+        render_html(f"""
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; margin-bottom:10px;">
+            <div style="font-weight:700; color:#3b82f6; font-size:1.02rem;">🛒 1. Trạm Lấy Hàng (Picking - 35%): {stn_picking} người</div>
+            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
+                Nhặt hàng theo đợt sóng (Wave/Batch Picking). Trang bị máy quét PDA Barcode và xe đẩy Trolley đa ngăn.
+            </div>
+        </div>
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; margin-bottom:10px;">
+            <div style="font-weight:700; color:#f59e0b; font-size:1.02rem;">🗂️ 2. Trạm Phân Loại (Sorting - 20%): {stn_sorting} người</div>
+            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
+                Phân chia theo mã bưu cục và tuyến giao hàng. Sử dụng hệ thống giá kệ chia hàng Put-to-Light.
+            </div>
+        </div>
+        <div style="background:#fff1f2; border:1.5px solid #fecdd3; border-radius:14px; padding:16px; margin-bottom:10px;">
+            <div style="font-weight:700; color:#e11d48; font-size:1.02rem;">📦 3. Trạm Đóng Gói (Packing - 35%): {stn_packing} người ⚠️ ĐIỂM NGHẼN</div>
+            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
+                <b>Mắt xích thắt cổ chai (Bottleneck) lớn nhất:</b> Quấn màng xốp khí, dán nhãn vận đơn A6 Shopee/Lazada. Cần bố trí đủ bàn packing và cuộn băng keo sẵn sàng.
+            </div>
+        </div>
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:16px;">
+            <div style="font-weight:700; color:#10b981; font-size:1.02rem;">🚚 4. Trạm Xuất Kho (Dispatch - 10%): {stn_dispatch} người</div>
+            <div style="color:#475569; font-size:0.88rem; margin-top:3px;">
+                Chất pallet, bắn mã bao hàng (Manifesting) và bàn giao xe tải cho các hãng vận chuyển (SPX, GHN, Viettel Post).
+            </div>
+        </div>
+        """)
+
+    st.markdown("#### 📋 Bảng Định Mức Vận Hành Từng Khâu (Academic Operational Standards)")
+    st.dataframe(df_schedule, use_container_width=True, hide_index=True)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# TAB 3: KẾT NỐI MÔ HÌNH XGBOOST (TV4)
 # ─────────────────────────────────────────────────────────────────────
 with tab_model_connect:
     st.markdown("### 🤖 Cầu Nối Giữa Dự Báo AI (TV4) & Điều Phối Nhân Sự (TV5)")
@@ -767,7 +879,72 @@ with tab_sensitivity:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# TAB 4: CẨM NĂNG BẢO VỆ PHẢN BIỆN (DEFENSE GUIDE)
+# TAB 5: MÁY TÍNH ROI & ĐIỂM HÒA VỐN (FINANCIAL FEASIBILITY)
+# ─────────────────────────────────────────────────────────────────────
+with tab_roi:
+    st.markdown("### 💰 Máy Tính Hoàn Vốn Đầu Tư (ROI) & Điểm Hòa Vốn (Break-Even)")
+    st.markdown("""
+    Doanh nghiệp thường chất vấn: *"Đầu tư hệ thống AI dự báo nhân sự tốn kém bao nhiêu, và bao lâu thì hoàn vốn?"*
+    Công cụ dưới đây hạch toán toàn diện hiệu quả tài chính & điểm hòa vốn:
+    """)
+
+    penalty_plus_ot = ot_rate_per_order + penalty_per_order
+    if penalty_plus_ot > 0:
+        break_even_orders = trad_cap + ((ai_total_cost - trad_wage_cost) / penalty_plus_ot)
+    else:
+        break_even_orders = trad_cap
+
+    r_col1, r_col2 = st.columns(2)
+    with r_col1:
+        st.markdown("#### 🎯 Phân Tích Điểm Hòa Vốn (Break-even)")
+        render_html(f"""
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:16px; padding:22px; margin-bottom:15px;">
+            <div style="font-size:0.85rem; color:#64748b; font-weight:700; text-transform:uppercase;">Ngưỡng đơn hàng bắt đầu có lãi (N*)</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#0f172a; margin:6px 0;">{fmt_num(break_even_orders)} đơn</div>
+            <div style="font-size:0.92rem; color:#475569;">
+                So với năng lực cố định truyền thống ({fmt_num(trad_cap)} đơn), chỉ cần lượng đơn thực tế vượt quá <b>{fmt_num(break_even_orders)} đơn</b> (+{fmt_num(max(0, break_even_orders - trad_cap))} đơn), 
+                phương án truyền thống sẽ lập tức đắt hơn phương án gọi đủ {ai_staff_required} người có AI do tiền phạt sàn TMĐT cộng dồn!
+            </div>
+        </div>
+        """)
+        st.latex(r"N^* = \text{Cap}_{\text{Trad}} + \frac{\text{Lương}_{\text{AI}} - \text{Lương}_{\text{Trad}}}{\text{Phạt/đơn} + \text{OT/đơn}} \approx " + fmt_num(break_even_orders) + r" \text{ đơn}")
+
+    with r_col2:
+        st.markdown("#### 📈 Máy Tính Hoàn Vốn Đầu Tư (Payback Calculator)")
+        ai_invest_input = st.number_input("Chi phí đầu tư phần mềm & Server AI (VNĐ):", value=15_000_000, step=1_000_000)
+        flash_events_year = st.slider("Số đợt Flash Sale lớn trong 1 năm (lần):", min_value=1, max_value=24, value=6, step=1)
+
+        total_annual_savings = net_savings * flash_events_year
+        if ai_invest_input > 0 and net_savings > 0:
+            payback_events = ai_invest_input / net_savings
+            payback_hours = payback_events * shift_hours
+            annual_roi = ((total_annual_savings - ai_invest_input) / ai_invest_input) * 100
+        else:
+            payback_events = 0
+            payback_hours = 0
+            annual_roi = 0
+
+        render_html(f"""
+        <div style="background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:16px; padding:22px;">
+            <div style="display:flex; justify-content:space-between;">
+                <div>
+                    <div style="font-size:0.85rem; color:#065f46; font-weight:700;">TIẾT KIỆM HÀNG NĂM ({flash_events_year} ĐỢT SALE)</div>
+                    <div style="font-size:1.8rem; font-weight:800; color:#059669;">{fmt_vnd(total_annual_savings)}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.85rem; color:#065f46; font-weight:700;">TỶ SUẤT HOÀN VỐN (ROI)</div>
+                    <div style="font-size:1.8rem; font-weight:800; color:#059669;">+{annual_roi:,.0f}%</div>
+                </div>
+            </div>
+            <div style="margin-top:12px; padding-top:12px; border-top:1px dashed #6ee7b7; font-size:0.92rem; color:#064e3b;">
+                ⚡ <b>Thời gian thu hồi vốn:</b> Chỉ sau <b>{payback_events:.2f} đêm Flash Sale</b> (~{payback_hours:.1f} giờ vận hành) là doanh nghiệp đã hoàn đủ 100% chi phí đầu tư công nghệ AI!
+            </div>
+        </div>
+        """)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# TAB 6: CẨM NĂNG BẢO VỆ PHẢN BIỆN (DEFENSE GUIDE)
 # ─────────────────────────────────────────────────────────────────────
 with tab_defense_qa:
     st.markdown("### 🛡️ Cẩm Nang Vượt Qua Vòng Phản Biện Của Giảng Viên")
@@ -809,7 +986,7 @@ with tab_defense_qa:
 
 
 # ─────────────────────────────────────────────────────────────────────
-# TAB 5: DEPLOY & TẠO QR CHO CANVA
+# TAB 7: DEPLOY & TẠO QR CHO CANVA
 # ─────────────────────────────────────────────────────────────────────
 with tab_deploy_qr:
     st.markdown("### 📱 Tạo Mã QR Tương Tác Dán Vào Slide Canva")
