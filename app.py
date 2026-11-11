@@ -35,14 +35,18 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+def render_html(content: str):
+    """Render HTML an toan, tu dong dung st.html (Streamlit 1.34+) hoac st.markdown fallback."""
+    if hasattr(st, "html"):
+        st.html(content)
+    else:
+        st.markdown(content, unsafe_allow_html=True)
+
 # Custom CSS cho phong cách Modern Executive Logistics Dashboard
-st.markdown("""
+render_html("""
 <style>
-    /* Google Fonts & Body */
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', sans-serif;
+    html, body, [class*="css"], [class*="st-"] {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     
     #MainMenu {visibility: hidden;}
@@ -240,7 +244,7 @@ st.markdown("""
         line-height: 1.6;
     }
 </style>
-""", unsafe_allow_html=True)
+""")
 
 
 # ╔═════════════════════════════════════════════════════════════════════╗
@@ -367,7 +371,7 @@ net_savings = trad_total_loss - ai_total_cost
 # ╚═════════════════════════════════════════════════════════════════════╝
 
 # Hero Header
-st.markdown("""
+render_html("""
 <div class="hero-banner">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
         <div>
@@ -381,7 +385,7 @@ st.markdown("""
         <span class="badge badge-purple">🎯 Mục tiêu: Xóa sạch 100% Backlog & Tối ưu Chi phí</span>
     </div>
 </div>
-""", unsafe_allow_html=True)
+""")
 
 # Tabs Điều Hướng Chính
 tab_dashboard, tab_model_connect, tab_sensitivity, tab_defense_qa, tab_deploy_qr = st.tabs([
@@ -399,54 +403,54 @@ with tab_dashboard:
     # Hàng 4 thẻ chỉ số nhanh (Metric Cards)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.markdown(f"""
+        render_html(f"""
         <div class="metric-card card-primary">
             <div class="card-label">📦 Tổng đơn AI dự báo</div>
             <div class="card-value" style="color: #2563eb;">{fmt_num(total_orders)}</div>
             <div class="card-sub">⚡ Ca Flash Sale (0h - 2h sáng)</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with c2:
-        st.markdown(f"""
+        render_html(f"""
         <div class="metric-card card-success">
             <div class="card-label">👷 Nhân sự AI đề xuất</div>
             <div class="card-value" style="color: #059669;">{ai_staff_required} người</div>
             <div class="card-sub">🛡️ Đã cộng {risk_alpha}% hệ số rủi ro</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with c3:
-        st.markdown(f"""
+        render_html(f"""
         <div class="metric-card card-danger">
             <div class="card-label">💥 Tồn đọng (Không AI)</div>
             <div class="card-value" style="color: #dc2626;">{fmt_num(trad_backlog)}</div>
             <div class="card-sub">⚠️ Tỷ lệ trễ hạn: <b>{trad_backlog_pct:.1f}%</b></div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with c4:
         if net_savings >= 0:
-            st.markdown(f"""
+            render_html(f"""
             <div class="metric-card card-success">
                 <div class="card-label">💰 Tiết kiệm ròng</div>
                 <div class="card-value" style="color: #059669;">{fmt_vnd(net_savings)}</div>
                 <div class="card-sub">🚀 Giảm {(net_savings/trad_total_loss*100) if trad_total_loss>0 else 0:.1f}% tổng chi phí</div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
         else:
-            st.markdown(f"""
+            render_html(f"""
             <div class="metric-card card-warning">
                 <div class="card-label">💰 Chi phí phát sinh</div>
                 <div class="card-value" style="color: #d97706;">{fmt_vnd(abs(net_savings))}</div>
                 <div class="card-sub">Đơn ít: Truyền thống vừa đủ sức</div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    render_html("<br>")
 
     # 2 BỨC TRANH ĐỐI LẬP (THE CORE STORY)
     col_trad, col_ai = st.columns(2)
 
     with col_trad:
-        st.markdown(f"""
+        render_html(f"""
         <div class="battle-box">
             <div class="battle-header-trad">
                 🔴 BỨC TRANH 1: KHÔNG CÓ AI (QUẢN LÝ CẢM TÍNH)
@@ -485,10 +489,10 @@ with tab_dashboard:
                 ⚠️ <b>Hậu quả dây chuyền:</b> Đơn trễ cam kết SLA của sàn TMĐT $\rightarrow$ Shop tụt hạng hiển thị, mất khách hàng trung thành, nhân viên kiệt sức vì OT đột xuất.
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with col_ai:
-        st.markdown(f"""
+        render_html(f"""
         <div class="battle-box">
             <div class="battle-header-ai">
                 🟢 BỨC TRANH 2: CÓ AI XGBOOST DỰ BÁO CHỦ ĐỘNG
@@ -527,17 +531,17 @@ with tab_dashboard:
                 🎯 <b>Lợi ích vượt trội:</b> Hoàn thành 100% đơn trong đêm, dư công suất dự phòng {fmt_num(ai_buffer_orders)} đơn để xử lý phát sinh, nâng điểm uy tín gian hàng.
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     # BANNER TIẾT KIỆM KHỔNG LỒ
     if net_savings > 0:
-        st.markdown(f"""
+        render_html(f"""
         <div class="grand-savings">
             <div class="title">🏆 ĐIỂM ĂN TIỀN NHẤT — AI GIÚP DOANH NGHIỆP TIẾT KIỆM RÒNG</div>
             <div class="amount">{fmt_vnd(net_savings)}</div>
             <div class="subtitle">Chỉ trong 01 đêm Flash Sale bùng nổ ({fmt_num(total_orders)} đơn hàng)</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     else:
         st.info(f"💡 Ở lượng đơn {fmt_num(total_orders)}, nhân sự cố định {fixed_staff} người đã đủ sức đáp ứng. AI tính toán chính xác để không gọi thừa người.")
 
@@ -864,9 +868,9 @@ with tab_deploy_qr:
 # ║                          6. FOOTER                                  ║
 # ╚═════════════════════════════════════════════════════════════════════╝
 st.markdown("---")
-st.markdown("""
+render_html("""
 <div style="text-align: center; color: #64748b; font-size: 0.85rem; padding-bottom: 25px;">
     🏭 <b>Đồ Án Môn Học E-Logistics & Supply Chain Management</b> | Nhiệm vụ 5: Tối ưu Hóa Nhân Sự & Hiệu Quả Kinh Tế<br>
     Được xây dựng với Python, Streamlit & Plotly Interactive Charts.
 </div>
-""", unsafe_allow_html=True)
+""")
