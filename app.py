@@ -45,49 +45,111 @@ def render_html(content: str):
 # Custom CSS cho phong cách Modern Executive Logistics Dashboard
 render_html("""
 <style>
-    /* Áp dụng font chữ chuẩn cho văn bản, không ép lên icon hệ thống */
-    html, body, .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, label, button, input {
+    /* Áp dụng font chữ chuẩn cho văn bản, không áp đặt bừa bãi lên icon hệ thống */
+    html, body, .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, label, input {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
     
-    /* Bảo vệ biểu tượng icon của Streamlit không bị vỡ thành chữ */
+    /* Bảo vệ toàn diện tất cả biểu tượng icon của Streamlit không bị vỡ thành chữ */
     [data-testid*="Icon"],
     [data-testid="stExpanderToggleIcon"],
     [data-testid="stIconMaterial"],
     [data-testid="collapsedControl"] *,
+    [data-testid="stExpandSidebarButton"] *,
     .material-symbols-rounded,
     .material-icons,
-    span[data-testid="stExpanderToggleIcon"] {
+    span[data-testid="stExpanderToggleIcon"],
+    [class*="material-symbols"] {
         font-family: "Material Symbols Rounded", "Material Icons" !important;
+        font-style: normal !important;
+        font-weight: normal !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        word-wrap: normal !important;
+        white-space: nowrap !important;
+        direction: ltr !important;
     }
     
-    /* Ẩn footer và menu phụ không cần thiết */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    [data-testid="stToolbar"] {visibility: hidden;}
-    [data-testid="stDecoration"] {display: none;}
+    /* Ẩn các menu và thanh công cụ phụ thừa */
+    #MainMenu {visibility: hidden !important; display: none !important;}
+    footer {visibility: hidden !important; display: none !important;}
+    [data-testid="stToolbarActions"] {display: none !important; visibility: hidden !important;}
+    [data-testid="stStatusWidget"] {display: none !important; visibility: hidden !important;}
+    [data-testid="stDecoration"] {display: none !important;}
     
-    /* Header trong suốt nhưng GIỮ NGUYÊN nút mở Sidebar ở góc trên bên trái */
-    header {
+    /* Giữ header và toolbar trong suốt để nút mở Sidebar hoạt động */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        z-index: 999990 !important;
+    }
+    [data-testid="stToolbar"] {
+        visibility: visible !important;
         background: transparent !important;
     }
     
-    /* Hiển thị rõ nét nút mở Sidebar (collapsedControl) ở góc trái khi sidebar bị đóng */
+    /* NÚT MỞ SIDEBAR (DẤU 3 GẠCH NGANG / HAMBURGER MENU) Ở GÓC TRÊN BÊN TRÁI */
+    [data-testid="stExpandSidebarButton"],
+    button[aria-label="Expand sidebar"],
     [data-testid="collapsedControl"] {
         visibility: visible !important;
-        display: flex !important;
-        color: #0f172a !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: fixed !important;
+        top: 14px !important;
+        left: 14px !important;
+        z-index: 1000000 !important;
+        width: 42px !important;
+        height: 42px !important;
         background: #ffffff !important;
-        border: 1px solid #cbd5e1 !important;
-        border-radius: 8px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-        z-index: 999999 !important;
-        top: 0.5rem !important;
-        left: 0.5rem !important;
+        color: #0f172a !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
+    [data-testid="stExpandSidebarButton"]:hover,
+    button[aria-label="Expand sidebar"]:hover,
     [data-testid="collapsedControl"]:hover {
         background: #f1f5f9 !important;
-        border-color: #3b82f6 !important;
+        border-color: #2563eb !important;
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25) !important;
+        transform: translateY(-1px) scale(1.02) !important;
+    }
+    
+    /* Ẩn icon mặc định keyboard_double_arrow_right của Streamlit và thay bằng dấu 3 gạch ngang ☰ */
+    [data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"],
+    button[aria-label="Expand sidebar"] [data-testid="stIconMaterial"],
+    [data-testid="collapsedControl"] [data-testid="stIconMaterial"] {
+        display: none !important;
+    }
+    [data-testid="stExpandSidebarButton"]::before,
+    button[aria-label="Expand sidebar"]::before,
+    [data-testid="collapsedControl"]::before {
+        content: "☰" !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        font-size: 22px !important;
+        line-height: 1 !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    [data-testid="stExpandSidebarButton"]:hover::before,
+    button[aria-label="Expand sidebar"]:hover::before,
+    [data-testid="collapsedControl"]:hover::before {
+        color: #2563eb !important;
+    }
+
+    /* Đảm bảo nút đóng sidebar (khi sidebar mở) hiển thị rõ đẹp */
+    [data-testid="stSidebarCollapseButton"] {
+        visibility: visible !important;
+        opacity: 1 !important;
+        border-radius: 8px !important;
     }
 
     /* Executive Hero Header */
@@ -525,7 +587,7 @@ with tab_dashboard:
                 <span class="fin-value val-danger" style="font-size:1.3rem;">{fmt_vnd(trad_total_loss)}</span>
             </div>
             <div style="margin-top:14px; font-size:0.85rem; color:#991b1b; background:#fee2e2; padding:10px 14px; border-radius:8px;">
-                ⚠️ <b>Hậu quả dây chuyền:</b> Đơn trễ cam kết SLA của sàn TMĐT $\rightarrow$ Shop tụt hạng hiển thị, mất khách hàng trung thành, nhân viên kiệt sức vì OT đột xuất.
+                ⚠️ <b>Hậu quả dây chuyền:</b> Đơn trễ cam kết SLA của sàn TMĐT ➔ Shop tụt hạng hiển thị, mất khách hàng trung thành, nhân viên kiệt sức vì OT đột xuất.
             </div>
         </div>
         """)
@@ -537,7 +599,7 @@ with tab_dashboard:
                 🟢 BỨC TRANH 2: CÓ AI XGBOOST DỰ BÁO CHỦ ĐỘNG
             </div>
             <p style="color:#64748b; font-size:0.95rem;">
-                Mô hình AI báo trước sẽ có <b>{fmt_num(total_orders)} đơn</b> $\rightarrow$ Hệ thống tự động tính gọi đúng <b>{ai_staff_required} người</b>.
+                Mô hình AI báo trước sẽ có <b>{fmt_num(total_orders)} đơn</b> ➔ Hệ thống tự động tính gọi đúng <b>{ai_staff_required} người</b>.
             </p>
             <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px; margin-bottom:18px;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
